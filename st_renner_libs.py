@@ -7,7 +7,6 @@ import os
 import unidecode
 import re
 import plotly.graph_objects as go
-import locale
 from scipy import stats
 from scipy.stats import gaussian_kde
 from scipy.signal import savgol_filter
@@ -249,13 +248,16 @@ def grafico_capitais_interior(df_clientes: pd.DataFrame) -> go.Figure:
     :param df_clientes: DataFrame contendo a coluna 'capital_label'
     :return fig: Figura do Plotly pronta para ser exibida
     """
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+    def format_number(value):
+        """Formata número para o padrão brasileiro sem depender do locale"""
+        return f"{value:,}".replace(",", ".")
 
     # Calcular as contagens e percentuais
     contagem = df_clientes['capital_label'].value_counts()
     percentuais = (contagem / len(df_clientes) * 100).round(1)
 
-    valores_formatados = ['{:n}'.format(int(valor)) for valor in contagem.values]
+    # Usar a função de formatação personalizada
+    valores_formatados = [format_number(int(valor)) for valor in contagem.values]
 
     # Criar o gráfico usando Plotly
     fig = go.Figure(data=[
@@ -275,8 +277,8 @@ def grafico_capitais_interior(df_clientes: pd.DataFrame) -> go.Figure:
             y=valor,
             text=f'{perc:.1f}%',
             showarrow=False,
-            yshift=15,  # Ajuste a distância do texto em relação à barra
-            font=dict(size=18)  # Fonte maior para os percentuais
+            yshift=15,
+            font=dict(size=18)
         )
 
     # Personalizar o layout
@@ -290,23 +292,23 @@ def grafico_capitais_interior(df_clientes: pd.DataFrame) -> go.Figure:
             'font': {'size': 20}
         },
         xaxis_title="",
-        yaxis_title="",  # Removido título do eixo y
+        yaxis_title="",
         showlegend=False,
         xaxis={
-            'categoryorder':'total ascending',  # Ordena as barras por valor
-            'tickfont': {'size': 18}  # Aumenta o tamanho da fonte das labels do eixo x
+            'categoryorder':'total ascending',
+            'tickfont': {'size': 18}
         },
         plot_bgcolor='white',
         height=500,
         width=800,
-        margin=dict(t=100, l=40, r=40, b=40)  # Reduzida margem esquerda
+        margin=dict(t=100, l=40, r=40, b=40)
     )
 
     # Remover grid e linha do eixo y
     fig.update_yaxes(
         showgrid=False,
         showline=False,
-        showticklabels=False  # Remove os números do eixo y
+        showticklabels=False
     )
 
     # Remover linha do eixo x
